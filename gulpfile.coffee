@@ -5,6 +5,7 @@ coffeeify = require 'coffeeify'
 browserify = require 'gulp-browserify'
 uglify = require 'gulp-uglify'
 rename = require 'gulp-rename'
+coffee = require 'gulp-coffee'
 
 gulp.task 'build', ->
   gulp
@@ -21,8 +22,16 @@ gulp.task 'build', ->
     .pipe(rename('time-of-day.min.js'))
     .pipe(gulp.dest('./dist/'))
 
+gulp.task 'coffee', ->
+  gulp
+    .src('./lib/timeOfDay.coffee')
+    .pipe(coffee())
+    .pipe(rename('index.js'))
+    .pipe(gulp.dest('./'))
+
 gulp.task 'default', [
   'build'
+  'coffee'
 ]
 
 

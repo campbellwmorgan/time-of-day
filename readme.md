@@ -5,14 +5,12 @@ A javascript library for alternating classes on a dom
 element based on the time of day
 
 
-Installation
-##
+##Installation
 
             npm install time-of-day --save
 
 
-Usage
-##
+##Usage
 
 Javascript (using browserify / common js):
 (Alternatively if you want to use the standalone version
@@ -22,14 +20,14 @@ include the file in ./dist/time-of-day.js and access via window.TimeOfDay)
 
             timeOfDayInstance = new TimeOfDay({
 
-                // required - array of elements who's classes
+                // required - array of elements whose classes
                 // will be modified
                 elements: $('.items-to-change').get(),
 
                 // class that gets appended
                 // when the timezone on the user's computer
                 // matches
-                class: 'item-active',
+                className: 'item-active',
 
                 // optional times of day
                 timesOfDay: {

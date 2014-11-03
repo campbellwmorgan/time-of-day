@@ -15,7 +15,7 @@ class TimeOfDay
   defs:
     elements: []
 
-    class: 'item-active'
+    className: 'item-active'
 
     timesOfDay:
       night:
@@ -66,15 +66,16 @@ class TimeOfDay
 
     to = @_createMoment day, period.to
 
-    return false if time > to
-
-    # reject if start time is
-    # less than end time (ie start time is
-    # same day as end time) and time is
-    # before start time
-    return false if (from < to) and (
-      time < from
-    )
+    # if end time is next day
+    if from < to
+      return false if time > to
+      return false if time < from
+    # if from is same day as to
+    else
+      return false if (
+        time > to and
+        time < from
+      )
 
     true
 
@@ -110,10 +111,10 @@ class TimeOfDay
       continue unless @_inPeriod now, period.period
 
       # add the active class to the element
-      @elementClass(el).addClass @opts.class
+      @elementClass(el).add @opts.className
       # add a class with the active timeperiod
       # to the element
-      @elementClass(el).addClass period.name + "-active"
+      @elementClass(el).add period.name + "-active"
 
 
   ###

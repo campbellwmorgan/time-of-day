@@ -29,8 +29,11 @@ describe "TimeOfDay", ->
 
   describe "_inPeriod", ->
 
-    it "should correctly match a given time with a period", ->
+    time = false
+    beforeEach ->
       time = moment("2012-03-10 12:00", "YYYY-MM-DD hh:mm")
+
+    it "should correctly match a given time with a period", ->
 
       period1=
         from: '08:00'
@@ -39,6 +42,8 @@ describe "TimeOfDay", ->
       expect(tOD._inPeriod(time, period1))
         .toBe false
 
+    it "should return true when within period", ->
+
       period2 =
         from: '08:00'
         to: '12:01'
@@ -46,6 +51,7 @@ describe "TimeOfDay", ->
       expect(tOD._inPeriod(time, period2))
         .toBe true
 
+    it "should return false when period occurs afterwards", ->
       period3 =
         from: '13:00'
         to: '16:00'
@@ -53,6 +59,7 @@ describe "TimeOfDay", ->
       expect(tOD._inPeriod(time, period3))
         .toBe false
 
+    it "should return true when period starts the day before and overlaps", ->
       period4 =
         from: '22:00'
         to: '13:00'
@@ -60,6 +67,7 @@ describe "TimeOfDay", ->
       expect(tOD._inPeriod(time, period4))
         .toBe true
 
+    it "should return false when period starts day before and ends before", ->
       period5 =
         from: '22:00'
         to: '11:00'
@@ -67,6 +75,21 @@ describe "TimeOfDay", ->
       expect(tOD._inPeriod(time, period5))
         .toBe false
 
+    it "should return true when period overlaps and time finishes the day after", ->
+      period6 =
+        from: '08:00'
+        to: '01:00'
+
+      expect(tOD._inPeriod(time, period6))
+        .toBe true
+
+    it "should return false when period doesnt overlap and time finishes day after", ->
+      period6 =
+        from: '14:00'
+        to: '01:00'
+
+      expect(tOD._inPeriod(time, period6))
+        .toBe false
 
 
   describe "_evaluateElements", ->
@@ -75,9 +98,9 @@ describe "TimeOfDay", ->
 
       elements = ['one', 'two', 'three']
       classContr =
-        addClass: (className) ->
+        add: (className) ->
 
-      spyOn classContr, 'addClass'
+      spyOn classContr, 'add'
       tOD.elementClass = (el) ->
         classContr
 
@@ -94,17 +117,17 @@ describe "TimeOfDay", ->
 
       tOD.opts =
         elements: elements
-        class: 'item-active'
+        className: 'item-active'
 
       tOD._evaluateElements()
 
-      expect(classContr.addClass)
+      expect(classContr.add)
         .toHaveBeenCalledWith 'item-active'
 
-      expect(classContr.addClass)
+      expect(classContr.add)
         .toHaveBeenCalledWith 'testa-active'
 
-      expect(classContr.addClass)
+      expect(classContr.add)
         .not
         .toHaveBeenCalledWith 'testb-active'
 

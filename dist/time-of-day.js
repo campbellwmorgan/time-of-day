@@ -29,7 +29,7 @@ elementClass = require('element-class');
 TimeOfDay = (function() {
   TimeOfDay.prototype.defs = {
     elements: [],
-    "class": 'item-active',
+    className: 'item-active',
     timesOfDay: {
       night: {
         from: '22:30',
@@ -91,11 +91,17 @@ TimeOfDay = (function() {
     day = time.format('YYYY-MM-DD');
     from = this._createMoment(day, period.from);
     to = this._createMoment(day, period.to);
-    if (time > to) {
-      return false;
-    }
-    if ((from < to) && (time < from)) {
-      return false;
+    if (from < to) {
+      if (time > to) {
+        return false;
+      }
+      if (time < from) {
+        return false;
+      }
+    } else {
+      if (time > to && time < from) {
+        return false;
+      }
     }
     return true;
   };
@@ -137,8 +143,8 @@ TimeOfDay = (function() {
       if (!this._inPeriod(now, period.period)) {
         continue;
       }
-      this.elementClass(el).addClass(this.opts["class"]);
-      _results.push(this.elementClass(el).addClass(period.name + "-active"));
+      this.elementClass(el).add(this.opts.className);
+      _results.push(this.elementClass(el).add(period.name + "-active"));
     }
     return _results;
   };
