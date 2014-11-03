@@ -1,6 +1,6 @@
 {
   "name": "time-of-day",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Adds classes to DOM elements according to time of day",
   "main": "index.js",
   "scripts": {
@@ -15,9 +15,7 @@
   "author": "Campbell Morgan <campbellmorgan@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "moment": "^2.8.3",
     "coffee-script": "^1.8.0",
-    "lodash": "^2.4.1",
     "element-class": "^0.1.1"
   },
   "devDependencies": {

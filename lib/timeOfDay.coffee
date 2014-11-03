@@ -8,7 +8,6 @@
 # github.com/campbellwmorgan/time-of-day
 #
 ###
-moment = require 'moment'
 elementClass = require 'element-class'
 
 class TimeOfDay
@@ -55,16 +54,16 @@ class TimeOfDay
 
   ###
   Are we in the current time period
-  @param {Moment} current time
+  @param {Date} current time
   @param {Object} Time Range
   ###
-  _inPeriod: (time, period)=>
+  _inPeriod: (timeNow, period)=>
     # get the current day
-    day = time.format 'YYYY-MM-DD'
+    time = @_getMinutesSinceMidnight timeNow
 
-    from = @_createMoment day, period.from
+    from = @_getMinutesSinceMidnight period.from
 
-    to = @_createMoment day, period.to
+    to = @_getMinutesSinceMidnight period.to
 
     # if end time is next day
     if from < to
@@ -81,20 +80,6 @@ class TimeOfDay
 
 
   ###
-  Creates a moment
-  from an hour
-  @param {string} day '2014-11-05'
-  @param {string} hour 'hh:mm'
-  @return {Moment}
-  ###
-  _createMoment: (dayString, hour) ->
-    moment(
-      "#{dayString} #{hour}",
-      "YYYY-MM-DD hh:mm"
-    )
-
-
-  ###
   Cycles through each element
   and adds active class to any
   element where time matches
@@ -102,7 +87,7 @@ class TimeOfDay
   _evaluateElements: =>
     return unless @opts.elements.length
 
-    now = moment()
+    now = new Date()
 
     for el in @opts.elements
       period = @_getPeriod el
@@ -139,6 +124,18 @@ class TimeOfDay
     time =
       period: @opts.timesOfDay[timeOfDay]
       name: timeOfDay
+
+  _getMinutesSinceMidnight: (time) =>
+    time = new Date() unless time?
+    matches = time.toString().match(/\d\d\:\d\d[^ ]?/)
+    return 0 unless matches.length
+    hoursMins = matches[0]
+    @_convertHoursMinsToMins(hoursMins)
+
+  _convertHoursMinsToMins: (hoursMins) ->
+    hours = parseInt(hoursMins.replace(/\:.*$/, ''))
+    mins = parseInt(hoursMins.replace(/^[^\:]+\:/, ''))
+    return (hours * 60) + mins
 
 
 module.exports = TimeOfDay

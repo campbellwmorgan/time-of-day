@@ -1,4 +1,3 @@
-moment = require 'moment'
 TimeOfDay = require '../lib/timeOfDay'
 
 class TimeOfDayMock extends TimeOfDay
@@ -31,7 +30,7 @@ describe "TimeOfDay", ->
 
     time = false
     beforeEach ->
-      time = moment("2012-03-10 12:00", "YYYY-MM-DD hh:mm")
+      time = "Mon Nov 03 2014 12:00:12 "
 
     it "should correctly match a given time with a period", ->
 
@@ -180,4 +179,12 @@ describe "TimeOfDay", ->
 
       expect(res.period.from)
         .toBe '08:00'
+
+  describe "getMinutesSinceMidnight", ->
+
+    it "should return correct number of minutes since midnight", ->
+      expect(tOD._getMinutesSinceMidnight(
+        "Mon Nov 03 2014 03:19:02 GMT+0000"
+      )).toBe 199
+
 

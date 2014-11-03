@@ -11,10 +11,8 @@
  */
 
 (function() {
-  var TimeOfDay, elementClass, moment,
+  var TimeOfDay, elementClass,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
-
-  moment = require('moment');
 
   elementClass = require('element-class');
 
@@ -49,6 +47,7 @@
     TimeOfDay.prototype.elementClass = elementClass;
 
     function TimeOfDay(config) {
+      this._getMinutesSinceMidnight = __bind(this._getMinutesSinceMidnight, this);
       this._getPeriod = __bind(this._getPeriod, this);
       this._evaluateElements = __bind(this._evaluateElements, this);
       this._inPeriod = __bind(this._inPeriod, this);
@@ -74,15 +73,15 @@
 
     /*
     Are we in the current time period
-    @param {Moment} current time
+    @param {Date} current time
     @param {Object} Time Range
      */
 
-    TimeOfDay.prototype._inPeriod = function(time, period) {
-      var day, from, to;
-      day = time.format('YYYY-MM-DD');
-      from = this._createMoment(day, period.from);
-      to = this._createMoment(day, period.to);
+    TimeOfDay.prototype._inPeriod = function(timeNow, period) {
+      var from, time, to;
+      time = this._getMinutesSinceMidnight(timeNow);
+      from = this._getMinutesSinceMidnight(period.from);
+      to = this._getMinutesSinceMidnight(period.to);
       if (from < to) {
         if (time > to) {
           return false;
@@ -100,19 +99,6 @@
 
 
     /*
-    Creates a moment
-    from an hour
-    @param {string} day '2014-11-05'
-    @param {string} hour 'hh:mm'
-    @return {Moment}
-     */
-
-    TimeOfDay.prototype._createMoment = function(dayString, hour) {
-      return moment("" + dayString + " " + hour, "YYYY-MM-DD hh:mm");
-    };
-
-
-    /*
     Cycles through each element
     and adds active class to any
     element where time matches
@@ -123,7 +109,7 @@
       if (!this.opts.elements.length) {
         return;
       }
-      now = moment();
+      now = new Date();
       _ref = this.opts.elements;
       _results = [];
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
@@ -164,6 +150,26 @@
         period: this.opts.timesOfDay[timeOfDay],
         name: timeOfDay
       };
+    };
+
+    TimeOfDay.prototype._getMinutesSinceMidnight = function(time) {
+      var hoursMins, matches;
+      if (time == null) {
+        time = new Date();
+      }
+      matches = time.toString().match(/\d\d\:\d\d[^ ]?/);
+      if (!matches.length) {
+        return 0;
+      }
+      hoursMins = matches[0];
+      return this._convertHoursMinsToMins(hoursMins);
+    };
+
+    TimeOfDay.prototype._convertHoursMinsToMins = function(hoursMins) {
+      var hours, mins;
+      hours = parseInt(hoursMins.replace(/\:.*$/, ''));
+      mins = parseInt(hoursMins.replace(/^[^\:]+\:/, ''));
+      return (hours * 60) + mins;
     };
 
     return TimeOfDay;
