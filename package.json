@@ -1,0 +1,31 @@
+{
+  "name": "time-of-day",
+  "version": "0.0.1",
+  "description": "Adds classes to DOM elements according to time of day",
+  "main": "index.js",
+  "scripts": {
+    "test": "./node_modules/.bin/jasmine-node --coffee ./test"
+  },
+  "keywords": [
+    "time",
+    "of",
+    "day",
+    "date"
+  ],
+  "author": "Campbell Morgan <campbellmorgan@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "moment": "^2.8.3",
+    "coffee-script": "^1.8.0",
+    "lodash": "^2.4.1",
+    "element-class": "^0.1.1"
+  },
+  "devDependencies": {
+    "coffeeify": "^0.7.0",
+    "gulp": "^3.8.9",
+    "gulp-browserify": "^0.5.0",
+    "jasmine-node": "^2.0.0",
+    "gulp-rename": "^1.2.0",
+    "gulp-uglify": "^1.0.1"
+  }
+}
