@@ -14,7 +14,9 @@ Installation
 Usage
 ##
 
-Javascript:
+Javascript (using browserify / common js):
+(Alternatively if you want to use the standalone version
+include the file in ./dist/time-of-day.js and access via window.TimeOfDay)
 
             var TimeOfDay = require('time-of-day');
 
