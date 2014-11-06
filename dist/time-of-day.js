@@ -28,6 +28,7 @@ TimeOfDay = (function() {
   TimeOfDay.prototype.defs = {
     elements: [],
     className: 'item-active',
+    onlyShowNext: false,
     timesOfDay: {
       night: {
         from: '22:30',
@@ -56,10 +57,13 @@ TimeOfDay = (function() {
 
   function TimeOfDay(config) {
     this._getMinutesSinceMidnight = __bind(this._getMinutesSinceMidnight, this);
+    this._rankPeriods = __bind(this._rankPeriods, this);
     this._getPeriod = __bind(this._getPeriod, this);
+    this._isActive = __bind(this._isActive, this);
     this._evaluateElements = __bind(this._evaluateElements, this);
     this._inPeriod = __bind(this._inPeriod, this);
     this._extendConfig = __bind(this._extendConfig, this);
+    this.activePeriods = [];
     this._extendConfig(config);
     this._evaluateElements();
   }
@@ -113,11 +117,11 @@ TimeOfDay = (function() {
    */
 
   TimeOfDay.prototype._evaluateElements = function() {
-    var el, now, period, _i, _len, _ref, _results;
+    var el, period, _i, _len, _ref, _results;
     if (!this.opts.elements.length) {
       return;
     }
-    now = new Date();
+    this._rankPeriods();
     _ref = this.opts.elements;
     _results = [];
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
@@ -126,13 +130,32 @@ TimeOfDay = (function() {
       if (!period) {
         continue;
       }
-      if (!this._inPeriod(now, period.period)) {
+      if (!this._isActive(period.period)) {
         continue;
+      }
+      if (this.opts.onlyShowNext) {
+        if (period.name !== this.activePeriods[0].name) {
+          continue;
+        }
       }
       this.elementClass(el).add(this.opts.className);
       _results.push(this.elementClass(el).add(period.name + "-active"));
     }
     return _results;
+  };
+
+
+  /*
+   * Checks if a period is active
+   * @param {Object} time range {from:.., to:...}
+   * @returns {Boolean}
+   */
+
+  TimeOfDay.prototype._isActive = function(timeRange, now) {
+    if (now == null) {
+      now = new Date();
+    }
+    return this._inPeriod(now, timeRange);
   };
 
 
@@ -159,6 +182,60 @@ TimeOfDay = (function() {
       name: timeOfDay
     };
   };
+
+  TimeOfDay.prototype._rankPeriods = function(nowOverride) {
+    var compare, name, obj, period, _ref;
+    compare = (function(_this) {
+      return function(a, b) {
+        var aCountdown, bCountdown;
+        aCountdown = _this._getTimeUntilEnd(a);
+        bCountdown = _this._getTimeUntilEnd(b);
+        return aCountdown > bCountdown;
+      };
+    })(this);
+    this.activePeriods = [];
+    _ref = this.opts.timesOfDay;
+    for (name in _ref) {
+      period = _ref[name];
+      obj = {
+        name: name,
+        from: period.from,
+        to: period.to
+      };
+      if (this._isActive(period, nowOverride)) {
+        this.activePeriods.push(obj);
+      }
+    }
+    this.activePeriods.sort(compare);
+    return this.activePeriods;
+  };
+
+
+  /*
+   * Gets the period of time until
+   * the end of the given period
+   * @param {Object} {from:..., to:..}
+   * @return {Integer} number of minutes
+   */
+
+  TimeOfDay.prototype._getTimeUntilEnd = function(period) {
+    var endTime, now, timeRemaining;
+    now = this._getMinutesSinceMidnight();
+    endTime = this._getMinutesSinceMidnight(period.to);
+    timeRemaining = endTime - now;
+    if (timeRemaining < 0) {
+      timeRemaining = ((24 * 60) + endTime) - now;
+    }
+    return timeRemaining;
+  };
+
+
+  /*
+   * Calculates the number of minutes
+   * since midnight
+   * @param {String} time (in format HH:MM)
+   * @return {Integer} minutes
+   */
 
   TimeOfDay.prototype._getMinutesSinceMidnight = function(time) {
     var hoursMins, matches;

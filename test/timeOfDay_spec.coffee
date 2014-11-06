@@ -9,7 +9,7 @@ describe "TimeOfDay", ->
   tOD = false
 
   beforeEach ->
-   tOD = new TimeOfDayMock()
+    tOD = new TimeOfDayMock()
 
 
   describe "extendConfig", ->
@@ -74,7 +74,8 @@ describe "TimeOfDay", ->
       expect(tOD._inPeriod(time, period5))
         .toBe false
 
-    it "should return true when period overlaps and time finishes the day after", ->
+    it "should return true when period " +
+    "overlaps and time finishes the day after", ->
       period6 =
         from: '08:00'
         to: '01:00'
@@ -82,7 +83,8 @@ describe "TimeOfDay", ->
       expect(tOD._inPeriod(time, period6))
         .toBe true
 
-    it "should return false when period doesnt overlap and time finishes day after", ->
+    it "should return false when period doesnt overlap " +
+    "and time finishes day after", ->
       period6 =
         from: '14:00'
         to: '01:00'
@@ -93,15 +95,22 @@ describe "TimeOfDay", ->
 
   describe "_evaluateElements", ->
 
-    it "should call add class on all elements where period matches", ->
+    classContr = false
 
-      elements = ['one', 'two', 'three']
+    beforeEach ->
       classContr =
         add: (className) ->
 
       spyOn classContr, 'add'
       tOD.elementClass = (el) ->
         classContr
+
+      tOD._rankPeriods = ->
+      tOD.activePeriods = [
+        {
+          name: 'testa'
+        }
+      ]
 
       tOD._getPeriod = (el) ->
         if el is 'one'
@@ -110,13 +119,17 @@ describe "TimeOfDay", ->
           return name: 'testb', period: 'two'
         return false
 
-      tOD._inPeriod = (time, period)->
+      tOD._isActive = (period)->
         return true if period is 'one'
         false
 
+      elements = ['one', 'two', 'three']
       tOD.opts =
         elements: elements
         className: 'item-active'
+
+    it "should call add class on all elements where period matches", ->
+
 
       tOD._evaluateElements()
 
@@ -130,6 +143,13 @@ describe "TimeOfDay", ->
         .not
         .toHaveBeenCalledWith 'testb-active'
 
+    it "should only add class to the next finishing period", ->
+      tOD.opts.onlyShowNext = true
+      tOD._evaluateElements()
+      expect(classContr.add)
+        .toHaveBeenCalledWith 'testa-active'
+      expect(classContr.add)
+        .not.toHaveBeenCalledWith 'testb-active'
 
   describe "_getPeriod", ->
     it "should return false if attribute is null", ->
@@ -180,11 +200,74 @@ describe "TimeOfDay", ->
       expect(res.period.from)
         .toBe '08:00'
 
+  describe "_isActive", ->
+
+    it "should call and return _inPeriod with now and timerange", ->
+
+      spyOn tOD, '_inPeriod'
+
+      now = new Date()
+
+      tOD._isActive 'period', now
+      expect(tOD._inPeriod)
+        .toHaveBeenCalledWith(now, 'period')
+
+
+
+  describe "_rankPeriods", ->
+    it "should order periods from soonest to last", ->
+
+      periods =
+        one:
+          from: '00:00'
+          to: '11:00'
+        two:
+          from: '00:00'
+          to: '09:00'
+        three:
+          from: '12:00'
+          to: '14:00'
+        four:
+          from: '00:00'
+          to: '10:00'
+
+
+      tOD.opts =
+        timesOfDay: periods
+
+      result = tOD._rankPeriods('01:15')
+      expect(result.length).toBe 3
+
+      expect(result[0].name).toBe 'two'
+      expect(result[2].name).toBe 'one'
+
+
+  describe "getTimeUntilEnd", ->
+    beforeEach ->
+      origTimeSinceMidnight = tOD._getMinutesSinceMidnight
+
+      newFunc = (time) ->
+        time = '01:15' unless time?
+        origTimeSinceMidnight.apply tOD, [time]
+
+      tOD._getMinutesSinceMidnight = newFunc
+
+    it "should get difference in between now and end of period", ->
+      expect(tOD._getTimeUntilEnd(to:'01:45'))
+        .toBe(30)
+
+    it "should add on 24 hours if end time passed in this 24 hour period", ->
+      expect(tOD._getTimeUntilEnd(to:'00:15'))
+        .toBe((23*60))
+
+
   describe "getMinutesSinceMidnight", ->
 
     it "should return correct number of minutes since midnight", ->
       expect(tOD._getMinutesSinceMidnight(
         "Mon Nov 03 2014 03:19:02 GMT+0000"
       )).toBe 199
+
+
 
 

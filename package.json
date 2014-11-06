@@ -1,6 +1,6 @@
 {
   "name": "time-of-day",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Adds classes to DOM elements according to time of day",
   "main": "index.js",
   "scripts": {

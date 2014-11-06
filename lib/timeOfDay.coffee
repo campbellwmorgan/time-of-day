@@ -16,6 +16,12 @@ class TimeOfDay
 
     className: 'item-active'
 
+    # if there are multiple
+    # overlapping periods
+    # just add the class to
+    # the next one
+    onlyShowNext: false
+
     timesOfDay:
       night:
         from: '22:30'
@@ -37,6 +43,11 @@ class TimeOfDay
   elementClass: elementClass
 
   constructor: (config) ->
+    # list of all active
+    # periods in order of
+    # when next finishing
+    @activePeriods = []
+
     @_extendConfig config
 
     # evaluate each element
@@ -87,13 +98,17 @@ class TimeOfDay
   _evaluateElements: =>
     return unless @opts.elements.length
 
-    now = new Date()
+    # rank the active periods by time til end
+    @_rankPeriods()
 
     for el in @opts.elements
       period = @_getPeriod el
       continue unless period
       # ignore if period not in list
-      continue unless @_inPeriod now, period.period
+      continue unless @_isActive period.period
+
+      if @opts.onlyShowNext
+        continue if period.name isnt @activePeriods[0].name
 
       # add the active class to the element
       @elementClass(el).add @opts.className
@@ -101,6 +116,14 @@ class TimeOfDay
       # to the element
       @elementClass(el).add period.name + "-active"
 
+  ###
+  # Checks if a period is active
+  # @param {Object} time range {from:.., to:...}
+  # @returns {Boolean}
+  ###
+  _isActive: (timeRange, now) =>
+    now = new Date() unless now?
+    @_inPeriod now, timeRange
 
   ###
   Checks the list of options
@@ -125,6 +148,52 @@ class TimeOfDay
       period: @opts.timesOfDay[timeOfDay]
       name: timeOfDay
 
+  # order active periods
+  # by proximity to now
+  _rankPeriods: (nowOverride) =>
+
+    compare = (a, b) =>
+      aCountdown = @_getTimeUntilEnd a
+      bCountdown = @_getTimeUntilEnd b
+      aCountdown > bCountdown
+
+    @activePeriods = []
+
+    for name, period of @opts.timesOfDay
+      obj =
+        name: name
+        from: period.from
+        to: period.to
+
+      if @_isActive(period, nowOverride)
+        @activePeriods.push(obj)
+
+    @activePeriods.sort(compare)
+    @activePeriods
+
+  ###
+  # Gets the period of time until
+  # the end of the given period
+  # @param {Object} {from:..., to:..}
+  # @return {Integer} number of minutes
+  ###
+  _getTimeUntilEnd: (period) ->
+    now = @_getMinutesSinceMidnight()
+    endTime =  @_getMinutesSinceMidnight period.to
+    timeRemaining = endTime - now
+    # if end time is in
+    # next 24 hour period
+    if timeRemaining < 0
+      timeRemaining = ((24 * 60) + endTime) - now
+
+    timeRemaining
+
+  ###
+  # Calculates the number of minutes
+  # since midnight
+  # @param {String} time (in format HH:MM)
+  # @return {Integer} minutes
+  ###
   _getMinutesSinceMidnight: (time) =>
     time = new Date() unless time?
     matches = time.toString().match(/\d\d\:\d\d[^ ]?/)
